@@ -2,12 +2,16 @@ const Book = require('../models/book');
 
 exports.createBook = (req, res, next) => {
   const book = new Book({
+    userId: req.body.userId,
     title: req.body.title,
-    description: req.body.description,
+    author: req.body.author,
     imageUrl: req.body.imageUrl,
-    price: req.body.price,
-    userId: req.body.userId
+    year: req.body.year,
+    genre: req.body.genre,
+    ratings: req.body.ratings || [],
+    averageRating: req.body.averageRating || 0 
   });
+
   book.save().then(
     () => {
       res.status(201).json({
@@ -22,6 +26,7 @@ exports.createBook = (req, res, next) => {
     }
   );
 };
+
 
 exports.getOneBook = (req, res, next) => {
   Book.findOne({
