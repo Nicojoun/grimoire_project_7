@@ -130,3 +130,18 @@ exports.ratingBook = (req, res, next) => {
       (error) => { res.status(404) .json({ error })}
       );
 };
+
+//afficher les 3 livres les mieux notés
+exports.bestRatingBooks = (req, res, next) => {
+  //const averageRating = req.body.averageRating;
+  Book.find()
+    .sort({ averageRating: -1 }) // Trier par moyenne décroissante
+    .limit(3) 
+    .then((books) => {
+      res.status(200).json(books);
+    })
+    .catch((error) => {
+      res.status(400).json({ error });
+    });
+};
+
