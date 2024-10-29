@@ -115,14 +115,18 @@ exports.ratingBook = (req, res, next) => {
       book.ratings.push({ userId, grade: rating });
 
       // Calculer la moyenne des notes
-      const totalRatings = book.ratings.grade.reduce((acc, curr) => acc + curr, 0);
-      book.averageRating = totalRatings / book.ratings.length;
+      const totalRatings = book.ratings.map(r => r.grade).reduce((acc, curr) => acc + curr, 0);
+      book.averageRating = (totalRatings / book.ratings.length).toFixed(2);
 
       book.save()
         .then(() => res.status(200).json({ 
           message: 'Livre noté !', 
         }))
-        .catch(error => res.status(400).json({ error }));
+        .catch(
+          (error) => res.status(400).json({ error })
+        );
     })
-    .catch(error => res.status(404).json({ error }));
+    .catch(
+      (error) => { res.status(404) .json({ error })}
+      );
 };
