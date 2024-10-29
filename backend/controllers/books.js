@@ -1,6 +1,7 @@
 const Book = require('../models/book');
 const fs = require('fs');
 
+//ajouter un livre
 exports.createBook = (req, res, next) => {
   const bookObject = JSON.parse(req.body.book);
   delete bookObject._id;
@@ -17,7 +18,7 @@ exports.createBook = (req, res, next) => {
 };
 
 
-
+//afficher un seul livre
 exports.getOneBook = (req, res, next) => {
   Book.findOne({
     _id: req.params.id
@@ -34,6 +35,7 @@ exports.getOneBook = (req, res, next) => {
   );
 };
 
+//modifier un livre
 exports.modifyBook = (req, res, next) => {
   const bookObject = req.file ? {
       ...JSON.parse(req.body.book),
@@ -56,7 +58,7 @@ exports.modifyBook = (req, res, next) => {
       });
 };
 
-
+// supprimer un livre
 exports.deleteBook = (req, res, next) => {
   Book.findOne({ _id: req.params.id })
       .then(book => {
@@ -76,7 +78,7 @@ exports.deleteBook = (req, res, next) => {
       });
 };
 
-
+//afficher tous les livres
 exports.getAllBooks = (req, res, next) => {
   Book.find().then(
     (books) => {
@@ -89,4 +91,38 @@ exports.getAllBooks = (req, res, next) => {
       });
     }
   );
+};
+
+// noter un livre 
+exports.ratingBook = (req, res, next) => {
+  const userId = req.auth.userId;
+  const rating = req.body.rating;
+
+  if (rating < 0 || rating > 5) {
+    return res.status(400).json({ message: 'La note doit être entre 0 et 5' });
+  }
+
+  Book.findOne({ _id: req.params.id })
+    .then(book => {
+      // Vérifier si l'utilisateur a déjà noté le livre
+      const existingRating = book.ratings.find(r => r.userId === userId);
+
+      if (existingRating) {
+        return res.status(400).json({ message: 'Vous avez déjà noté ce livre.' });
+      }
+
+      // Ajouter une nouvelle note
+      book.ratings.push({ userId, grade: rating });
+
+      // Calculer la moyenne des notes
+      const totalRatings = book.ratings.grade.reduce((acc, curr) => acc + curr, 0);
+      book.averageRating = totalRatings / book.ratings.length;
+
+      book.save()
+        .then(() => res.status(200).json({ 
+          message: 'Livre noté !', 
+        }))
+        .catch(error => res.status(400).json({ error }));
+    })
+    .catch(error => res.status(404).json({ error }));
 };
