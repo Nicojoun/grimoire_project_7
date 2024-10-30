@@ -119,9 +119,7 @@ exports.ratingBook = (req, res, next) => {
       book.averageRating = (totalRatings / book.ratings.length).toFixed(2);
 
       book.save()
-        .then(() => res.status(200).json({ 
-          message: 'Livre noté !', 
-        }))
+      .then((ratedBook) => res.status(200).json(ratedBook))
         .catch(
           (error) => res.status(400).json({ error })
         );
