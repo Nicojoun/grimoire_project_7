@@ -1,5 +1,6 @@
 const Book = require('../models/book');
 const fs = require('fs');
+const sharp = require('../middleware/sharp-config');
 
 //ajouter un livre
 exports.createBook = (req, res, next) => {
@@ -11,6 +12,8 @@ exports.createBook = (req, res, next) => {
       userId: req.auth.userId,
       imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
   });
+
+  sharp(req.file); // Appeler la fonction de traitement d'image
 
   book.save()
   .then(() => { res.status(201).json({ message: 'Livre enregistré !' })})
@@ -36,27 +39,37 @@ exports.getOneBook = (req, res, next) => {
 };
 
 //modifier un livre
-exports.modifyBook = (req, res, next) => {
-  const bookObject = req.file ? {
+exports.modifyBook = async (req, res, next) => {
+  try {
+    // Créer un objet bookObject à partir de la requête
+    const bookObject = req.file ? {
       ...JSON.parse(req.body.book),
-      imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-  } : { ...req.body };
+      imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
+    } : { ...req.body };
 
-  delete bookObject._userId;
-  Book.findOne({_id: req.params.id})
-      .then((book) => {
-          if (book.userId != req.auth.userId) {
-              res.status(401).json({ message : 'Not authorized' });
-          } else {
-              Book.updateOne({ _id: req.params.id }, { ...bookObject, _id: req.params.id })
-              .then(() => res.status(200).json({ message : 'Book modified!' }))
-              .catch(error => res.status(401).json({ error }));
-          }
-      })
-      .catch((error) => {
-          res.status(400).json({ error });
-      });
+    // Appeler la fonction de traitement d'image si un fichier est fourni
+    if (req.file) {
+      await sharp(req.file); // Attendre la fin du traitement de l'image
+    }
+
+    delete bookObject._userId;
+
+    // Trouver le livre à modifier
+    const book = await Book.findOne({ _id: req.params.id });
+
+    // Vérifier si l'utilisateur est autorisé à modifier le livre
+    if (book.userId != req.auth.userId) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    // Mettre à jour le livre dans la base de données
+    await Book.updateOne({ _id: req.params.id }, { ...bookObject, _id: req.params.id });
+    res.status(200).json({ message: 'Book modified!' });
+  } catch (error) {
+    res.status(400).json({ error });
+  }
 };
+
 
 // supprimer un livre
 exports.deleteBook = (req, res, next) => {
