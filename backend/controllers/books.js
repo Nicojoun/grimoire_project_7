@@ -76,15 +76,14 @@ exports.deleteBook = (req, res, next) => {
   Book.findOne({ _id: req.params.id })
       .then(book => {
           if (book.userId != req.auth.userId) {
-              res.status(401).json({ message: 'Not authorized' });
-          } else {
+              return res.status(401).json({ message: 'Not authorized' });
+          } 
               const filename = book.imageUrl.split('/images/')[1];
               fs.unlink(`images/${filename}`, () => {
                   Book.deleteOne({ _id: req.params.id })
                       .then(() => { res.status(200).json({ message: 'Book deleted!' }) })
                       .catch(error => res.status(401).json({ error }));
               });
-          }
       })
       .catch(error => {
           res.status(500).json({ error });
