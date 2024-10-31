@@ -3,23 +3,33 @@ const fs = require('fs');
 const sharp = require('../middleware/sharp-config');
 
 //ajouter un livre
-exports.createBook = (req, res, next) => {
-  const bookObject = JSON.parse(req.body.book);
-  delete bookObject._id;
-  delete bookObject._userId;
-  const book = new Book({
+exports.createBook = async (req, res, next) => {
+  try {
+    // Extraire et préparer les informations du livre
+    const bookObject = JSON.parse(req.body.book);
+    delete bookObject._id;
+    delete bookObject._userId;
+
+    // Créer l'instance du livre avec les informations utilisateur et l'URL de l'image
+    const book = new Book({
       ...bookObject,
       userId: req.auth.userId,
       imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-  });
+    });
 
-  sharp(req.file); // Appeler la fonction de traitement d'image
+    // Appeler la fonction de traitement d'image de manière asynchrone
+    await sharp(req.file);
 
-  book.save()
-  .then(() => { res.status(201).json({ message: 'Livre enregistré !' })})
-  .catch(error => { res.status(400).json({ error })});
+    // Enregistrer le livre dans la base de données
+    await book.save();
+
+    // Envoyer une réponse de succès
+    res.status(201).json({ message: 'Livre enregistré !' });
+  } catch (error) {
+    // Gérer les erreurs
+    res.status(400).json({ error });
+  }
 };
-
 
 //afficher un seul livre
 exports.getOneBook = (req, res, next) => {
