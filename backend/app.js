@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const mongoose = require('mongoose');
 const booksRoutes = require('./routes/books');
@@ -6,11 +8,11 @@ const path = require('path');
 
 const app = express();
 
-mongoose.connect('mongodb+srv://grimoire:1@cluster0.4wnip.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0',
-    { useNewUrlParser: true,
-      useUnifiedTopology: true })
-    .then(() => console.log('Connexion à MongoDB réussie !'))
-    .catch(() => console.log('Connexion à MongoDB échouée !'));
+mongoose.connect(`mongodb+srv://grimoire:${process.env.DB_PASSWORD}@cluster0.4wnip.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`, 
+  { useNewUrlParser: true,
+    useUnifiedTopology: true })
+  .then(() => console.log('Connexion à MongoDB réussie !'))
+  .catch(() => console.log('Connexion à MongoDB échouée !'));
 
 app.use(express.json());
 
