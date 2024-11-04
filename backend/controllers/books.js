@@ -1,6 +1,6 @@
 const Book = require('../models/book');
 const fs = require('fs');
-const sharp = require('../middleware/sharp-config');
+const sharp = require('../tools/sharp-config');
 
 //ajouter un livre
 exports.createBook = async (req, res, next) => {
