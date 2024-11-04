@@ -4,7 +4,6 @@ const router = express.Router();
 const booksCtrl = require('../controllers/books');
 const auth = require('../middleware/auth');
 const multer = require('../middleware/multer-config');
-// sharp = require('../middleware/sharp-config');
 
 
 router.get('/', booksCtrl.getAllBooks); //afficher tous les livres
