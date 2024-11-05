@@ -116,52 +116,50 @@ exports.getAllBooks = (req, res, next) => {
 };
 
 // noter un livre 
-exports.ratingBook = (req, res, next) => {
+exports.ratingBook = async (req, res, next) => {
   const userId = req.auth.userId;
   const rating = req.body.rating;
 
+  // Vérifier si la note est valide
   if (rating < 0 || rating > 5) {
     return res.status(400).json({ message: 'La note doit être entre 0 et 5' });
   }
 
-  Book.findOne({ _id: req.params.id })
-    .then(book => {
-      // Vérifier si l'utilisateur a déjà noté le livre
-      const existingRating = book.ratings.find(r => r.userId === userId);
+  try {
+    // Trouver le livre par son ID
+    const book = await Book.findOne({ _id: req.params.id });
 
-      if (existingRating) {
-        return res.status(400).json({ message: 'Vous avez déjà noté ce livre.' });
-      }
+    // Vérifier si l'utilisateur a déjà noté le livre
+    const existingRating = book.ratings.find(r => r.userId === userId);
+    if (existingRating) {
+      return res.status(400).json({ message: 'Vous avez déjà noté ce livre.' });
+    }
 
-      // Ajouter une nouvelle note
-      book.ratings.push({ userId, grade: rating });
+    // Ajouter une nouvelle note
+    book.ratings.push({ userId, grade: rating });
 
-      // Calculer la moyenne des notes
-      const totalRatings = book.ratings.map(r => r.grade).reduce((acc, curr) => acc + curr, 0);
-      book.averageRating = (totalRatings / book.ratings.length).toFixed(2);
+    // Calculer la moyenne des notes
+    const totalRatings = book.ratings.map(r => r.grade).reduce((acc, curr) => acc + curr, 0);
+    book.averageRating = (totalRatings / book.ratings.length).toFixed(2);
 
-      book.save()
-      .then((ratedBook) => res.status(200).json(ratedBook))
-        .catch(
-          (error) => res.status(400).json({ error })
-        );
-    })
-    .catch(
-      (error) => { res.status(404) .json({ error })}
-      );
+    // Sauvegarder le livre avec la nouvelle note
+    const ratedBook = await book.save();
+    res.status(200).json(ratedBook);
+    
+  } catch (error) {
+    // Gérer les erreurs
+    res.status(400).json({ error });
+  }
 };
 
 //afficher les 3 livres les mieux notés
-exports.bestRatingBooks = (req, res, next) => {
-  //const averageRating = req.body.averageRating;
-  Book.find()
-    .sort({ averageRating: -1 }) // Trier par moyenne décroissante
-    .limit(3) 
-    .then((books) => {
-      res.status(200).json(books);
-    })
-    .catch((error) => {
-      res.status(400).json({ error });
-    });
+exports.bestRatingBooks = async (req, res, next) => {
+  try {
+    // Récupérer les livres triés par moyenne décroissante et limiter à 3
+    const books = await Book.find().sort({ averageRating: -1 }).limit(3);
+    res.status(200).json(books);
+  } catch (error) {
+    res.status(400).json({ error });
+  }
 };
 
