@@ -80,7 +80,6 @@ exports.modifyBook = async (req, res, next) => {
   }
 };
 
-
 // supprimer un livre
 exports.deleteBook = (req, res, next) => {
   Book.findOne({ _id: req.params.id })
