@@ -17,7 +17,7 @@ exports.createBook = async (req, res, next) => {
       imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
     });
 
-    // traitement d'image de manière 
+    // traitement d'image 
     await sharp(req.file);
 
     // Enregistrer le livre dans la base de données
