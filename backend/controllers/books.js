@@ -59,7 +59,7 @@ exports.modifyBook = async (req, res, next) => {
 
     // Appeler la fonction de traitement d'image si un fichier est fourni
     if (req.file) {
-      await sharp(req.file); // Attendre la fin du traitement de l'image
+      await sharp(req.file); 
     }
 
     delete bookObject._userId;
